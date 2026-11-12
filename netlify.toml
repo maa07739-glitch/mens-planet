@@ -1,0 +1,34 @@
+# ==============================================================================
+# MEN'S PLANET — Netlify Production Deployment Configuration
+# ==============================================================================
+
+[build]
+  # Publish directory containing index.html and assets
+  publish = "."
+
+# Direct routing for Admin Panel
+[[redirects]]
+  from = "/admin"
+  to = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/index.html"
+  status = 200
+
+# Route aliases
+[[redirects]]
+  from = "/shop"
+  to = "/index.html"
+  status = 200
+
+# Security & Gateway HTTP Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Content Security Policy configured for Supabase & Cashfree SDK v3
+    Content-Security-Policy = "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https://sdk.cashfree.com https://sandbox.cashfree.com https://api.cashfree.com; connect-src 'self' https://*.supabase.co https://sdk.cashfree.com https://sandbox.cashfree.com https://api.cashfree.com https://images.unsplash.com; img-src 'self' https: data: blob:; font-src 'self' https://fonts.gstatic.com;"

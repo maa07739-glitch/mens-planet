@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MEN'S PLANET® — Admin Panel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap">
+<!-- Supabase JS Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #111111;
+  --surface: #181818;
+  --card: #202020;
+  --border: rgba(255, 255, 255, 0.08);
+  --ink: #009e2a;
+  --ink-hover: #00b832;
+  --ink-subtle: rgba(0, 158, 42, 0.12);
+  --text: #f4f4f4;
+  --muted: #888888;
+  --danger: #e53935;
+  --danger-bg: rgba(229, 57, 53, 0.12);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --ease: cubic-bezier(.77,0,.18,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Archivo, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+input, select, textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color .2s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--ink);
+}
+
+/* Header */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+.brand svg { width: 24px; height: 24px; }
+.brand span { color: var(--text); }
+.brand .badge {
+  background: var(--ink);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.user-chip strong { color: var(--text); }
+.btn-store {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  transition: all .2s;
+}
+.btn-store:hover { border-color: var(--ink); color: var(--ink); }
+.btn-logout {
+  color: var(--muted);
+  font-weight: 600;
+  transition: color .2s;
+}
+.btn-logout:hover { color: var(--danger); }
+
+/* Navigation Tabs */
+.tabs-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  gap: 24px;
+}
+.tab-btn {
+  padding: 14px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+}
+.tab-btn.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+/* Layout */
+main {
+  flex: 1;
+  padding: 30px 24px 80px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--ink);
+  opacity: 0.6;
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.stat-desc {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.section-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .2s;
+  box-shadow: 0 4px 14px rgba(0, 158, 42, 0.25);
+}
+.btn-primary:hover {
+  background: var(--ink-hover);
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: all .2s;
+}
+.btn-secondary:hover {
+  border-color: var(--ink);
+}
+.btn-danger {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: #ff6b6b;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: all .2s;
+}
+.btn-danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* Tables */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+th {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255, 255, 255, 0.015); }
+
+.prod-thumb {
+  width: 48px;
+  height: 60px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--card);
+  display: block;
+}
+.prod-meta strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.prod-meta span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.badge-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.badge-active { background: var(--ink-subtle); color: var(--ink); }
+.badge-inactive { background: rgba(255, 255, 255, 0.08); color: var(--muted); }
+.badge-stock { background: var(--ink-subtle); color: var(--ink); }
+.badge-low { background: var(--warning-bg); color: var(--warning); }
+.badge-out { background: var(--danger-bg); color: var(--danger); }
+
+/* Status selector */
+select.status-select {
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  width: auto;
+  border-radius: 4px;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  max-width: 640px;
+  width: 100%;
+  padding: 28px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  position: relative;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 18px;
+  letter-spacing: -0.02em;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group.full { grid-column: 1 / -1; }
+.form-group label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.sizes-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.size-btn {
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+}
+.size-btn.active {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+/* Image preview container */
+.img-preview-box {
+  width: 100%;
+  height: 140px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  position: relative;
+  background: var(--card);
+}
+.img-preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Login screen */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.login-logo svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+}
+.login-logo h1 {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+.login-logo p {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+.error-banner {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: #ff8585;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--surface);
+  border: 1px solid var(--ink);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all .3s var(--ease);
+  pointer-events: none;
+}
+#toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+[hidden] { display: none !important; }
+
+@media (max-width: 768px) {
+  .form-grid { grid-template-columns: 1fr; }
+  header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .header-actions { width: 100%; justify-content: space-between; }
+}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 78 L12 20 L35 55 L58 20 L58 78" stroke="#009e2a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M58 20 H80 C88 20 94 26 94 36 C94 46 88 52 80 52 H58" stroke="#ffffff" stroke-width="13" stroke-linecap="round"/>
+        <path d="M6 72 Q24 76 44 48" stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M36 46 L47 46 L47 57" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1>MEN'S PLANET®</h1>
+      <p>Administrator Authentication</p>
+    </div>
+
+    <div class="error-banner" id="login-error"></div>
+
+    <form id="login-form">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Admin Email</label>
+        <input type="email" id="login-email" placeholder="admin@mensplanet.com" required autocomplete="email">
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-primary" id="login-submit" style="width:100%; justify-content:center; padding:12px;">
+        Sign In to Portal
+      </button>
+    </form>
+    <div style="text-align:center; margin-top:16px;">
+      <a href="../index.html" style="font-size:11px; color:var(--muted); text-decoration:underline;">← Return to Storefront</a>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 78 L12 20 L35 55 L58 20 L58 78" stroke="#009e2a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M58 20 H80 C88 20 94 26 94 36 C94 46 88 52 80 52 H58" stroke="#ffffff" stroke-width="13" stroke-linecap="round"/>
+    </svg>
+    <span>MEN'S PLANET®</span>
+    <span class="badge">Admin Portal</span>
+  </div>
+  <div class="header-actions">
+    <div class="user-chip">Signed in as <strong id="admin-user-email">admin</strong></div>
+    <a href="../index.html" class="btn-store" target="_blank">View Live Store ↗</a>
+    <button class="btn-logout" id="logout-btn">Log Out</button>
+  </div>
+</header>
+
+<!-- Tabs Bar -->
+<div class="tabs-bar">
+  <button class="tab-btn active" data-tab="overview">Dashboard Overview</button>
+  <button class="tab-btn" data-tab="products">Products Inventory</button>
+  <button class="tab-btn" data-tab="categories">Category Management</button>
+  <button class="tab-btn" data-tab="orders">Customer Orders</button>
+</div>
+
+<!-- Main Content -->
+<main>
+  <!-- OVERVIEW TAB -->
+  <section id="tab-overview">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value" id="stat-total-products">0</div>
+        <div class="stat-desc" id="stat-active-products">0 active in catalog</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Customer Orders</div>
+        <div class="stat-value" id="stat-total-orders">0</div>
+        <div class="stat-desc" id="stat-pending-orders">0 pending fulfillment</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Sales Volume</div>
+        <div class="stat-value" id="stat-total-revenue">$0</div>
+        <div class="stat-desc">From completed customer orders</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Low Stock Alerts</div>
+        <div class="stat-value" id="stat-low-stock" style="color:var(--warning)">0</div>
+        <div class="stat-desc">Items with stock &le; 5</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2 class="section-title">Recent Customer Orders</h2>
+      <button class="btn-secondary" onclick="switchTab('orders')">View All Orders →</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order Ref</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="overview-orders-tbody">
+          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">Loading orders...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PRODUCTS TAB -->
+  <section id="tab-products" hidden>
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Catalog Inventory</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:2px;">Manage live products, SKU, pricing, stock levels, and sizing.</p>
+      </div>
+      <button class="btn-primary" id="btn-open-add-product">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Add New Product
+      </button>
+    </div>
+
+    <!-- Products Search & Filter Toolbar -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+      <div style="display:flex;gap:10px;flex:1;min-width:280px;flex-wrap:wrap;">
+        <input type="text" id="product-search-input" placeholder="Search by title, SKU, category, description..." style="flex:1;min-width:200px;padding:8px 12px;font-size:12px;" oninput="onProductFilterChange()">
+        <select id="product-category-filter" style="min-width:160px;padding:8px 10px;font-size:12px;" onchange="onProductFilterChange()">
+          <option value="all">All Categories</option>
+        </select>
+        <select id="product-status-filter" style="min-width:140px;padding:8px 10px;font-size:12px;" onchange="onProductFilterChange()">
+          <option value="all">All Statuses</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive / Draft</option>
+          <option value="low_stock">Low Stock (≤ 5)</option>
+          <option value="out_of_stock">Out of Stock (0)</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn-secondary" id="btn-refresh-products" onclick="loadProducts()" style="font-size:11px;padding:6px 10px;">↻ Refresh</button>
+        <span style="font-size:11px;color:var(--muted);font-weight:600;" id="products-filter-count">Showing products</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px;">Image</th>
+            <th>Product &amp; SKU</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Sizes</th>
+            <th>Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-tbody">
+          <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">Loading products...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CATEGORIES TAB -->
+  <section id="tab-categories" hidden>
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Category Management</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:2px;">Organize product taxonomy. Deletions are safeguarded to protect active catalog products.</p>
+      </div>
+      <button class="btn-primary" id="btn-open-add-category">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Add New Category
+      </button>
+    </div>
+
+    <!-- Category Search & Filter -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+      <div style="display:flex;gap:10px;flex:1;min-width:260px;">
+        <input type="text" id="category-search-input" placeholder="Search categories by name, slug or description..." style="flex:1;min-width:180px;padding:8px 12px;font-size:12px;" oninput="onCategoryFilterChange()">
+        <select id="category-status-filter" style="width:150px;padding:8px 10px;font-size:12px;" onchange="onCategoryFilterChange()">
+          <option value="all">All Statuses</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn-secondary" onclick="loadCategories()" style="font-size:11px;padding:6px 10px;">↻ Refresh</button>
+        <span style="font-size:11px;color:var(--muted);font-weight:600;" id="categories-count-badge">0 categories</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Category Name</th>
+            <th>Slug / Identifier</th>
+            <th>Description</th>
+            <th>Assigned Products</th>
+            <th>Status</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="categories-tbody">
+          <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px;">Loading categories...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ORDERS TAB -->
+  <section id="tab-orders" hidden>
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Customer Orders Management</h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:2px;">Review details, filter orders, update fulfillment statuses, and review customer cancellation requests.</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-secondary" id="btn-refresh-orders">Refresh Orders</button>
+      </div>
+    </div>
+
+    <!-- Orders Filter & Search Toolbar (Req 9, 10) -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;">
+      <div style="display:flex;gap:10px;flex:1;min-width:280px;">
+        <input type="text" id="order-search-input" placeholder="Search by order #, customer name, email, phone..." style="flex:1;min-width:200px;padding:8px 12px;font-size:12px;" oninput="onOrderFilterChange()">
+        <select id="order-status-filter" style="width:170px;padding:8px 10px;font-size:12px;" onchange="onOrderFilterChange()">
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="cancellation_requested">⚠️ Cancellation Requests</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn-secondary" id="filter-btn-all" onclick="setOrderStatusFilter('all')" style="font-size:11px;padding:6px 10px;">All (<span id="filter-count-all">0</span>)</button>
+        <button type="button" class="btn-secondary" id="filter-btn-cancellations" onclick="setOrderStatusFilter('cancellation_requested')" style="font-size:11px;padding:6px 10px;border-color:var(--warning);color:var(--warning);">⚠️ Cancellation Requests (<span id="filter-count-cancels">0</span>)</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order Ref</th>
+            <th>Customer Information</th>
+            <th>Items Ordered</th>
+            <th>Total Amount</th>
+            <th>Order Status</th>
+            <th>Date Placed</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody">
+          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px;">Loading orders...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- PRODUCT MODAL (ADD & EDIT) -->
+<div class="modal-overlay" id="product-modal" hidden>
+  <div class="modal-card">
+    <h3 class="modal-title" id="modal-product-title">Add New Product</h3>
+    <form id="product-form">
+      <input type="hidden" id="prod-id">
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Product Title / Name *</label>
+          <input type="text" id="prod-name" placeholder="e.g. Cuban Collar Linen Shirt" required>
+        </div>
+
+        <div class="form-group">
+          <label>Product SKU / Code</label>
+          <input type="text" id="prod-sku" placeholder="e.g. MP-CLS-001">
+        </div>
+
+        <div class="form-group">
+          <label>Price ($) *</label>
+          <input type="number" id="prod-price" step="0.01" min="0.01" placeholder="68.00" required>
+        </div>
+
+        <div class="form-group">
+          <label>Stock Quantity *</label>
+          <input type="number" id="prod-stock" min="0" placeholder="15" required>
+        </div>
+
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="prod-category">
+            <option value="Shirts">Shirts</option>
+            <option value="T-Shirts">T-Shirts</option>
+            <option value="Outerwear">Outerwear</option>
+            <option value="Pants">Pants</option>
+            <option value="Caps & Headwear">Caps & Headwear</option>
+            <option value="Bags & Packs">Bags & Packs</option>
+            <option value="Accessories">Accessories</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Catalog Status</label>
+          <select id="prod-status">
+            <option value="active">Active (Visible in Store)</option>
+            <option value="inactive">Inactive / Draft (Hidden)</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>Available Sizes</label>
+          <div class="sizes-picker" id="modal-sizes-picker">
+            <button type="button" class="size-btn active" data-size="S">S</button>
+            <button type="button" class="size-btn active" data-size="M">M</button>
+            <button type="button" class="size-btn active" data-size="L">L</button>
+            <button type="button" class="size-btn active" data-size="XL">XL</button>
+            <button type="button" class="size-btn" data-size="XXL">XXL</button>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>Product Image</label>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <input type="file" id="prod-image-file" accept="image/*">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:11px;color:var(--muted);">OR image URL:</span>
+              <input type="url" id="prod-image-url" placeholder="https://images.unsplash.com/...">
+            </div>
+            <div class="img-preview-box" id="img-preview-container">
+              <span style="color:var(--muted);font-size:11px;">Image Preview</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>Description &amp; Tailoring Notes</label>
+          <textarea id="prod-desc" rows="3" placeholder="Fabric, cut, and fit specifications..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="btn-cancel-product">Cancel</button>
+        <button type="submit" class="btn-primary" id="btn-save-product">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal-overlay" id="delete-modal" hidden>
+  <div class="modal-card" style="max-width:400px; text-align:center;">
+    <h3 class="modal-title" style="color:var(--danger);">Delete Product?</h3>
+    <p style="font-size:13px; color:var(--muted); margin-bottom:24px;" id="delete-modal-msg">
+      Are you sure you want to delete this item? This action will permanently remove it from the database.
+    </p>
+    <div style="display:flex; justify-content:center; gap:12px;">
+      <button class="btn-secondary" id="btn-cancel-delete">Cancel</button>
+      <button class="btn-danger" id="btn-confirm-delete">Confirm Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL (ADD & EDIT) -->
+<div class="modal-overlay" id="category-modal" hidden>
+  <div class="modal-card" style="max-width:500px;">
+    <h3 class="modal-title" id="modal-category-title">Add New Category</h3>
+    <form id="category-form">
+      <input type="hidden" id="cat-id">
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Category Name *</label>
+          <input type="text" id="cat-name" placeholder="e.g. Denim &amp; Jeans" required>
+        </div>
+
+        <div class="form-group">
+          <label>Slug / URL Identifier</label>
+          <input type="text" id="cat-slug" placeholder="e.g. denim-jeans">
+        </div>
+
+        <div class="form-group">
+          <label>Category Status</label>
+          <select id="cat-status">
+            <option value="active">Active (Visible)</option>
+            <option value="inactive">Inactive (Hidden)</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>Description (Optional)</label>
+          <textarea id="cat-desc" rows="3" placeholder="Category notes or styling taxonomy..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="btn-cancel-category">Cancel</button>
+        <button type="submit" class="btn-primary" id="btn-save-category">Save Category</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CATEGORY DELETE MODAL (SAFE DELETION) -->
+<div class="modal-overlay" id="category-delete-modal" hidden>
+  <div class="modal-card" style="max-width:440px; text-align:center;">
+    <h3 class="modal-title" style="color:var(--danger);">Delete Category</h3>
+    <p style="font-size:13px; color:var(--text); margin-bottom:14px;">
+      Category: <strong id="cat-delete-name" style="color:var(--ink);">Category Name</strong>
+    </p>
+    <div id="cat-delete-warning"></div>
+    <div style="display:flex; justify-content:center; gap:12px;">
+      <button class="btn-secondary" id="btn-cancel-delete-cat">Cancel</button>
+      <button class="btn-danger" id="btn-confirm-delete-cat">Confirm Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAIL MODAL (Req 3, 4, 9) -->
+<div class="modal-overlay" id="order-detail-modal" hidden>
+  <div class="modal-card" style="max-width:760px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <div style="font-size:11px;font-weight:800;color:var(--ink);letter-spacing:0.08em;text-transform:uppercase;">ORDER DETAILS & MANAGEMENT</div>
+        <h3 class="modal-title" id="od-ref" style="margin-bottom:2px;">Order #ORD-00000</h3>
+        <div id="od-date" style="font-size:12px;color:var(--muted);">Placed on ...</div>
+      </div>
+      <button class="btn-secondary" onclick="closeOrderDetailModal()" style="padding:6px 10px;font-size:12px;">✕ Close</button>
+    </div>
+
+    <!-- Cancellation Banner (Visible if customer requested cancellation) (Req 9) -->
+    <div id="od-cancel-banner" style="display:none;background:rgba(245,158,11,0.12);border:1px solid #f59e0b;border-radius:6px;padding:14px 16px;margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:800;color:#f59e0b;font-size:13px;display:flex;align-items:center;gap:6px;">
+            <span>⚠️</span> CUSTOMER HAS REQUESTED ORDER CANCELLATION
+          </div>
+          <p style="font-size:12px;color:var(--text);margin:6px 0 2px;"><strong>Reason:</strong> <span id="od-cancel-reason">Customer requested cancellation</span></p>
+          <p style="font-size:11px;color:var(--muted);margin:0;">Requested: <span id="od-cancel-time">Recent</span></p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+          <button class="btn-danger" id="od-btn-approve-cancel" style="padding:7px 12px;font-size:11px;">✓ Approve Cancellation</button>
+          <button class="btn-secondary" id="od-btn-decline-cancel" style="padding:7px 12px;font-size:11px;">✕ Decline</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer & Delivery Information Grid (Req 2, 3) -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:16px;background:var(--card);padding:14px 16px;border-radius:6px;margin-bottom:18px;font-size:12.5px;">
+      <div>
+        <div style="font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Customer Information</div>
+        <div id="od-customer-name" style="font-weight:700;font-size:13.5px;">Name</div>
+        <div id="od-customer-email" style="color:var(--muted);font-size:11.5px;">email@domain.com</div>
+        <div id="od-customer-phone" style="color:var(--text);font-size:12px;margin-top:2px;">Phone</div>
+      </div>
+      <div>
+        <div style="font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Shipping / Delivery Address</div>
+        <div id="od-shipping-address" style="line-height:1.4;color:var(--text);">Address details...</div>
+        <div id="od-shipping-city-state" style="color:var(--muted);font-size:11.5px;margin-top:2px;">City, State - PIN</div>
+      </div>
+      <div>
+        <div style="font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Payment & Status</div>
+        <div id="od-payment-badge" style="margin-bottom:4px;">Unpaid</div>
+        <div id="od-payment-id" style="font-size:10px;color:var(--muted);word-break:break-all;"></div>
+      </div>
+    </div>
+
+    <!-- Order Items Breakdown (Req 3) -->
+    <div style="margin-bottom:18px;">
+      <h4 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:8px;">Ordered Items</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Size</th>
+              <th>Unit Price</th>
+              <th>Qty</th>
+              <th style="text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="od-items-tbody">
+            <!-- Rendered dynamically -->
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" style="text-align:right;font-weight:800;padding-top:12px;">Total Order Amount:</td>
+              <td style="text-align:right;font-weight:900;font-size:15px;color:var(--ink);padding-top:12px;" id="od-total-amount">₹0.00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin Status Update & Notes Section (Req 4, 12) -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;">
+      <h4 style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:10px;">Update Order Status</h4>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:1;min-width:180px;">
+          <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;">Order Status</label>
+          <select id="od-status-select" style="width:100%;padding:8px 10px;font-size:12px;">
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div style="flex:2;min-width:240px;">
+          <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;">Admin Notes (Optional)</label>
+          <input type="text" id="od-admin-notes" placeholder="e.g. Dispatched via courier tracking ID..." style="width:100%;padding:8px 10px;font-size:12px;">
+        </div>
+        <button class="btn-primary" id="od-btn-save-status" onclick="saveOrderDetailStatus()">Save Status</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Notification Toast -->
+<div id="toast">
+  <span id="toast-msg">Operation completed</span>
+</div>
+
+<script>
+/* ---------- Supabase Client Initialization ---------- */
+const SUPABASE_URL = "https://wreujkeruvkgayeprfml.supabase.co";
+const SUPABASE_KEY = "sb_publishable_iPjSRrKQO_Cp30pdHee8Cw_5IjjgAL2";
+
+// Initialize exactly one Supabase client in globally accessible supabaseClient
+window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var supabaseClient = window.supabaseClient;
+var supabase = window.supabaseClient; // Alias
+
+console.log("MEN'S PLANET Admin Portal Supabase initialized");
+
+/* ---------- State & Global Store ---------- */
+let currentUser = null;
+let currentProducts = [];
+let currentCategories = [];
+let currentOrders = [];
+let deleteTargetId = null;
+let deleteCategoryTarget = null;
+let productSearchQuery = '';
+let productCategoryFilter = 'all';
+let productStatusFilter = 'all';
+let categorySearchQuery = '';
+let categoryStatusFilter = 'all';
+let orderSearchQuery = '';
+let orderStatusFilter = 'all';
+let activeOrderDetailId = null;
+
+const $ = id => document.getElementById(id);
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function showToast(msg, duration = 3000) {
+  const toast = $('toast');
+  $('toast-msg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+/* ---------- Tab Navigation ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => switchTab(btn.dataset.tab);
+});
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+  $('tab-overview').hidden = tabName !== 'overview';
+  $('tab-products').hidden = tabName !== 'products';
+  if ($('tab-categories')) $('tab-categories').hidden = tabName !== 'categories';
+  $('tab-orders').hidden = tabName !== 'orders';
+
+  if (tabName === 'products') loadProducts();
+  if (tabName === 'categories') loadCategories();
+  if (tabName === 'orders') loadOrders();
+}
+
+/* ---------- Authentication & Role Verification (Req 1, 9, 10) ---------- */
+async function checkAuth() {
+  try {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error || !session) {
+      showLoginScreen();
+      return;
+    }
+
+    const user = session.user;
+
+    // Requirement 9 & 10: Verify profiles.role === 'admin'
+    // Customers can never grant themselves admin role
+    const { data: profile, error: profileErr } = await supabaseClient
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileErr || !profile || profile.role !== 'admin') {
+      await supabaseClient.auth.signOut();
+      showLoginError("Access Restricted: Your account does not have administrator privileges. Only profiles.role = 'admin' are permitted.");
+      showLoginScreen();
+      return;
+    }
+
+    currentUser = user;
+    $('admin-user-email').textContent = user.email || 'Admin';
+    $('login-screen').hidden = true;
+
+    // Initial Data Fetch
+    await Promise.all([loadCategories(), loadProducts(), loadOrders()]);
+  } catch (err) {
+    console.error("Auth check error:", err);
+    showLoginScreen();
+  }
+}
+
+function showLoginScreen() {
+  $('login-screen').hidden = false;
+  $('login-email').value = '';
+  $('login-password').value = '';
+}
+
+function showLoginError(msg) {
+  const banner = $('login-error');
+  banner.textContent = msg;
+  banner.style.display = 'block';
+}
+
+// Login submission
+$('login-form').onsubmit = async (e) => {
+  e.preventDefault();
+  const email = $('login-email').value.trim();
+  const password = $('login-password').value;
+  const submitBtn = $('login-submit');
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Verifying credentials...';
+  $('login-error').style.display = 'none';
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Verify role in 'profiles'
+    const { data: profile, error: profErr } = await supabaseClient
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profErr || !profile || profile.role !== 'admin') {
+      await supabaseClient.auth.signOut();
+      throw new Error("Access Denied: This account is not authorized as an administrator.");
+    }
+
+    currentUser = data.user;
+    $('admin-user-email').textContent = currentUser.email || 'Admin';
+    $('login-screen').hidden = true;
+    showToast("Signed in as Administrator");
+
+    loadProducts();
+    loadOrders();
+  } catch (err) {
+    showLoginError(err.message || "Failed to authenticate.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign In to Portal';
+  }
+};
+
+// Logout
+$('logout-btn').onclick = async () => {
+  if (confirm("Sign out of MEN'S PLANET Admin Portal?")) {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    showLoginScreen();
+    showToast("Logged out successfully");
+  }
+};
+
+/* ---------- Products Management (Phase 1) ---------- */
+async function loadProducts() {
+  const tbody = $('products-tbody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;">Loading catalog...</td></tr>';
+
+  try {
+    // Detect column names for safe query
+    const { data: sample } = await supabaseClient.from('products').select('*').limit(1);
+    const cols = (sample && sample.length > 0) ? Object.keys(sample[0]) : [];
+
+    let query = supabaseClient.from('products').select('*');
+    if (cols.includes('created_at')) query = query.order('created_at', { ascending: false });
+    else if (cols.includes('id')) query = query.order('id', { ascending: true });
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    currentProducts = (data || []).map(p => ({
+      id: p.id,
+      sku: p.sku || p.code || p.product_code || '',
+      name: p.name || p.title || p.product_name || 'Untitled Product',
+      price: parseFloat(p.price || p.unit_price || 0),
+      stock: parseInt(p.stock !== undefined ? p.stock : (p.quantity || 0), 10),
+      category: p.category || p.category_name || 'General',
+      description: p.description || p.desc || p.details || '',
+      image: p.image_url || p.image || p.img || (Array.isArray(p.images) ? p.images[0] : '') || 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=300&q=80',
+      sizes: Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === 'string' ? (p.sizes.startsWith('[') ? JSON.parse(p.sizes) : p.sizes.split(',').map(s=>s.trim())) : ['S', 'M', 'L', 'XL']),
+      isActive: p.is_active !== undefined ? (p.is_active === true || p.is_active === 1 || p.is_active === 'true') : (p.status !== 'inactive'),
+      raw: p
+    }));
+
+    updateCategoryDropdowns();
+    renderProductsTable();
+    updateOverviewStats();
+  } catch (err) {
+    console.error("Products error:", err);
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--danger);padding:30px;">Error loading products: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function onProductFilterChange() {
+  const searchInput = $('product-search-input');
+  const catFilter = $('product-category-filter');
+  const statusFilter = $('product-status-filter');
+
+  productSearchQuery = (searchInput ? searchInput.value : '').trim().toLowerCase();
+  productCategoryFilter = catFilter ? catFilter.value : 'all';
+  productStatusFilter = statusFilter ? statusFilter.value : 'all';
+
+  renderProductsTable();
+}
+
+function renderProductsTable() {
+  const tbody = $('products-tbody');
+  const countBadge = $('products-filter-count');
+
+  if (currentProducts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No products found in the database. Click "+ Add New Product" to create one.</td></tr>';
+    if (countBadge) countBadge.textContent = '0 products';
+    return;
+  }
+
+  // Filter products by search query, category, and status
+  const filtered = currentProducts.filter(p => {
+    // Search query matches name, sku, category, or description
+    if (productSearchQuery) {
+      const q = productSearchQuery;
+      const matchName = (p.name || '').toLowerCase().includes(q);
+      const matchSku = (p.sku || '').toLowerCase().includes(q);
+      const matchCat = (p.category || '').toLowerCase().includes(q);
+      const matchDesc = (p.description || '').toLowerCase().includes(q);
+      if (!matchName && !matchSku && !matchCat && !matchDesc) return false;
+    }
+
+    // Category filter
+    if (productCategoryFilter !== 'all') {
+      if ((p.category || '').toLowerCase() !== productCategoryFilter.toLowerCase()) return false;
+    }
+
+    // Status / stock filter
+    if (productStatusFilter === 'active') {
+      if (!p.isActive) return false;
+    } else if (productStatusFilter === 'inactive') {
+      if (p.isActive) return false;
+    } else if (productStatusFilter === 'low_stock') {
+      if (p.stock <= 0 || p.stock > 5) return false;
+    } else if (productStatusFilter === 'out_of_stock') {
+      if (p.stock > 0) return false;
+    }
+
+    return true;
+  });
+
+  if (countBadge) {
+    countBadge.textContent = `Showing ${filtered.length} of ${currentProducts.length} products`;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No products matching your search/filter criteria.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(p => {
+    let stockBadge = `<span class="badge-tag badge-stock">${p.stock} in stock</span>`;
+    if (p.stock <= 0) stockBadge = `<span class="badge-tag badge-out">Out of stock</span>`;
+    else if (p.stock <= 5) stockBadge = `<span class="badge-tag badge-low">${p.stock} low stock</span>`;
+
+    const statusBadge = p.isActive
+      ? `<span class="badge-tag badge-active">Active</span>`
+      : `<span class="badge-tag badge-inactive">Inactive</span>`;
+
+    const sizesStr = (p.sizes || []).map(s => `<span style="display:inline-block;border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:10.5px;margin:1px;font-weight:600;">${escapeHtml(s)}</span>`).join('') || '<span style="color:var(--muted);font-size:11px;">None</span>';
+
+    const skuDisplay = p.sku ? `<span style="font-family:monospace;font-size:10.5px;color:var(--muted);background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:3px;display:inline-block;margin-top:2px;">SKU: ${escapeHtml(p.sku)}</span>` : '';
+
+    const toggleBtnTitle = p.isActive ? 'Disable / Hide Product' : 'Enable / Show Product';
+    const toggleBtnLabel = p.isActive ? 'Disable' : 'Enable';
+    const toggleBtnClass = p.isActive ? 'btn-secondary' : 'btn-primary';
+
+    return `
+      <tr>
+        <td>
+          <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" class="prod-thumb" onerror="this.src='https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=300&q=80'">
+        </td>
+        <td class="prod-meta">
+          <strong>${escapeHtml(p.name)}</strong>
+          ${skuDisplay}
+          <span style="font-size:10px;color:var(--muted);margin-top:1px;">ID: ${escapeHtml(p.id)}</span>
+        </td>
+        <td><span class="badge-tag" style="background:rgba(255,255,255,0.04);">${escapeHtml(p.category)}</span></td>
+        <td><strong>₹${p.price.toFixed(2)}</strong></td>
+        <td>${stockBadge}</td>
+        <td>${sizesStr}</td>
+        <td>${statusBadge}</td>
+        <td style="text-align:right;">
+          <div style="display:inline-flex;gap:6px;align-items:center;">
+            <button class="btn-secondary" style="padding:5px 8px;font-size:11px;" onclick="openEditProduct('${p.id}')">Edit</button>
+            <button class="${toggleBtnClass}" style="padding:5px 8px;font-size:11px;" title="${toggleBtnTitle}" onclick="toggleProductStatus('${p.id}')">${toggleBtnLabel}</button>
+            <button class="btn-danger" style="padding:5px 8px;font-size:11px;" onclick="openDeleteProduct('${p.id}', '${escapeHtml(p.name).replace(/'/g, "\\'")}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Inline Toggle Product Active / Inactive Status
+async function toggleProductStatus(id) {
+  const prod = currentProducts.find(p => String(p.id) === String(id));
+  if (!prod) return;
+
+  const newStatus = !prod.isActive;
+  try {
+    const { data: sampleRow } = await supabaseClient.from('products').select('*').limit(1);
+    const cols = (sampleRow && sampleRow.length > 0) ? Object.keys(sampleRow[0]) : [];
+
+    const payload = {};
+    if (cols.includes('is_active')) payload.is_active = newStatus;
+    if (cols.includes('active')) payload.active = newStatus;
+    if (cols.includes('status')) payload.status = newStatus ? 'active' : 'inactive';
+    if (!cols.includes('is_active') && !cols.includes('active') && !cols.includes('status')) {
+      payload.is_active = newStatus;
+    }
+
+    const { error } = await supabaseClient
+      .from('products')
+      .update(payload)
+      .eq('id', id);
+
+    if (error) throw error;
+
+    prod.isActive = newStatus;
+    showToast(`Product "${prod.name}" ${newStatus ? 'activated' : 'disabled'}`);
+    renderProductsTable();
+    updateOverviewStats();
+  } catch (err) {
+    console.error("Toggle product status error:", err);
+    alert("Could not update product status: " + err.message);
+  }
+}
+
+/* ---------- Add / Edit Modal & Storage Upload ---------- */
+$('btn-open-add-product').onclick = () => openAddProduct();
+$('btn-cancel-product').onclick = () => $('product-modal').hidden = true;
+
+function openAddProduct() {
+  updateCategoryDropdowns();
+  $('modal-product-title').textContent = 'Add New Product';
+  $('prod-id').value = '';
+  $('prod-name').value = '';
+  $('prod-sku').value = '';
+  $('prod-price').value = '';
+  $('prod-stock').value = '15';
+  if ($('prod-category').options.length > 0) $('prod-category').selectedIndex = 0;
+  $('prod-status').value = 'active';
+  $('prod-desc').value = '';
+  $('prod-image-url').value = '';
+  $('prod-image-file').value = '';
+  updateImagePreview('');
+
+  // Default sizes: S, M, L, XL
+  document.querySelectorAll('#modal-sizes-picker .size-btn').forEach(btn => {
+    btn.classList.toggle('active', ['S', 'M', 'L', 'XL'].includes(btn.dataset.size));
+  });
+
+  $('product-modal').hidden = false;
+}
+
+function openEditProduct(id) {
+  const prod = currentProducts.find(p => String(p.id) === String(id));
+  if (!prod) return;
+
+  updateCategoryDropdowns();
+  $('modal-product-title').textContent = 'Edit Product — ' + prod.name;
+  $('prod-id').value = prod.id;
+  $('prod-name').value = prod.name;
+  $('prod-sku').value = prod.sku || '';
+  $('prod-price').value = prod.price;
+  $('prod-stock').value = prod.stock;
+  if ($('prod-category')) $('prod-category').value = prod.category;
+  $('prod-status').value = prod.isActive ? 'active' : 'inactive';
+  $('prod-desc').value = prod.description;
+  $('prod-image-url').value = prod.image;
+  $('prod-image-file').value = '';
+  updateImagePreview(prod.image);
+
+  document.querySelectorAll('#modal-sizes-picker .size-btn').forEach(btn => {
+    btn.classList.toggle('active', (prod.sizes || []).includes(btn.dataset.size));
+  });
+
+  $('product-modal').hidden = false;
+}
+
+// Size pills toggle
+document.querySelectorAll('#modal-sizes-picker .size-btn').forEach(btn => {
+  btn.onclick = () => btn.classList.toggle('active');
+});
+
+// Image preview handlers
+$('prod-image-url').oninput = (e) => updateImagePreview(e.target.value);
+$('prod-image-file').onchange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => updateImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+};
+
+function updateImagePreview(src) {
+  const container = $('img-preview-container');
+  if (src) {
+    container.innerHTML = `<img src="${escapeHtml(src)}" alt="Preview" onerror="this.parentElement.innerHTML='<span style=\\'color:var(--danger);font-size:11px;\\'>Invalid Image URL</span>'">`;
+  } else {
+    container.innerHTML = `<span style="color:var(--muted);font-size:11px;">Image Preview</span>`;
+  }
+}
+
+// Save Product (Insert or Update with Validation & Storage Bucket support)
+$('product-form').onsubmit = async (e) => {
+  e.preventDefault();
+
+  const name = $('prod-name').value.trim();
+  const sku = $('prod-sku') ? $('prod-sku').value.trim() : '';
+  const price = parseFloat($('prod-price').value);
+  const stock = parseInt($('prod-stock').value, 10);
+  const category = $('prod-category').value;
+  const status = $('prod-status').value;
+  const isActive = status === 'active';
+  const description = $('prod-desc').value.trim();
+
+  // VALIDATION REQUIREMENTS
+  if (!name) {
+    alert("Validation Error: Product name is required.");
+    $('prod-name').focus();
+    return;
+  }
+  if (isNaN(price) || price <= 0) {
+    alert("Validation Error: Price must be greater than zero.");
+    $('prod-price').focus();
+    return;
+  }
+  if (isNaN(stock) || stock < 0) {
+    alert("Validation Error: Stock quantity cannot be negative.");
+    $('prod-stock').focus();
+    return;
+  }
+
+  const saveBtn = $('btn-save-product');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving to Supabase...';
+
+  try {
+    const prodId = $('prod-id').value;
+
+    // Collect active sizes
+    const selectedSizes = Array.from(document.querySelectorAll('#modal-sizes-picker .size-btn.active'))
+      .map(b => b.dataset.size);
+
+    let imageUrl = $('prod-image-url').value.trim();
+    const file = $('prod-image-file').files[0];
+
+    // Upload to 'product-images' bucket if file selected
+    if (file) {
+      saveBtn.textContent = 'Uploading image...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const filePath = `catalog/${fileName}`;
+
+      const { data: uploadData, error: uploadErr } = await supabaseClient.storage
+        .from('product-images')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadErr) {
+        console.warn("Storage upload failed, falling back to URL if provided:", uploadErr.message);
+      } else {
+        const { data: publicUrlData } = supabaseClient.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+        if (publicUrlData && publicUrlData.publicUrl) {
+          imageUrl = publicUrlData.publicUrl;
+        }
+      }
+    }
+
+    if (!imageUrl) {
+      imageUrl = 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=1200&q=80';
+    }
+
+    // Inspect columns of 'products' to match schema safely
+    const { data: sampleRow } = await supabaseClient.from('products').select('*').limit(1);
+    const cols = (sampleRow && sampleRow.length > 0) ? Object.keys(sampleRow[0]) : [];
+
+    const payload = {};
+    if (cols.includes('name')) payload.name = name;
+    if (cols.includes('title')) payload.title = name;
+    if (cols.includes('product_name')) payload.product_name = name;
+    if (!cols.includes('name') && !cols.includes('title') && !cols.includes('product_name')) payload.name = name;
+
+    if (cols.includes('price')) payload.price = price;
+    if (cols.includes('unit_price')) payload.unit_price = price;
+    if (!cols.includes('price') && !cols.includes('unit_price')) payload.price = price;
+
+    if (cols.includes('stock')) payload.stock = stock;
+    if (cols.includes('quantity')) payload.quantity = stock;
+
+    if (cols.includes('category')) payload.category = category;
+    if (cols.includes('description')) payload.description = description;
+    if (cols.includes('desc')) payload.desc = description;
+
+    if (cols.includes('image_url')) payload.image_url = imageUrl;
+    if (cols.includes('image')) payload.image = imageUrl;
+    if (!cols.includes('image_url') && !cols.includes('image')) payload.image_url = imageUrl;
+
+    if (cols.includes('sizes')) payload.sizes = selectedSizes;
+    if (cols.includes('is_active')) payload.is_active = isActive;
+    if (cols.includes('active')) payload.active = isActive;
+    if (cols.includes('status')) payload.status = status;
+
+    if (cols.includes('sku')) payload.sku = sku;
+    if (cols.includes('code')) payload.code = sku;
+
+    // Schema-adaptive save function
+    const executeSave = async (dataToSave) => {
+      let currentPayload = { ...dataToSave };
+      for (let attempt = 0; attempt < 5; attempt++) {
+        let op;
+        if (prodId) {
+          op = await supabaseClient.from('products').update(currentPayload).eq('id', prodId);
+        } else {
+          op = await supabaseClient.from('products').insert([currentPayload]);
+        }
+
+        if (!op.error) return op;
+
+        const errStr = op.error.message || '';
+        const missingMatch = errStr.match(/Could not find the '([^']+)' column/i);
+        if (missingMatch && missingMatch[1] && currentPayload.hasOwnProperty(missingMatch[1])) {
+          console.warn(`Column '${missingMatch[1]}' not found in products schema cache. Removing and retrying.`);
+          delete currentPayload[missingMatch[1]];
+          continue;
+        }
+        throw op.error;
+      }
+    };
+
+    await executeSave(payload);
+
+    if (prodId) {
+      showToast("Product updated successfully!");
+    } else {
+      showToast("New product created successfully!");
+    }
+
+    $('product-modal').hidden = true;
+    await loadProducts();
+  } catch (err) {
+    console.error("Save product error:", err);
+    alert("Error saving product: " + err.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Product';
+  }
+};
+
+/* ---------- Delete Product Confirmation ---------- */
+function openDeleteProduct(id, name) {
+  deleteTargetId = id;
+  $('delete-modal-msg').textContent = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+  $('delete-modal').hidden = false;
+}
+
+$('btn-cancel-delete').onclick = () => {
+  deleteTargetId = null;
+  $('delete-modal').hidden = true;
+};
+
+$('btn-confirm-delete').onclick = async () => {
+  if (!deleteTargetId) return;
+  const btn = $('btn-confirm-delete');
+  btn.disabled = true;
+  btn.textContent = 'Deleting...';
+
+  try {
+    const { error } = await supabaseClient
+      .from('products')
+      .delete()
+      .eq('id', deleteTargetId);
+    if (error) throw error;
+
+    showToast("Product deleted successfully");
+    $('delete-modal').hidden = true;
+    deleteTargetId = null;
+    await loadProducts();
+  } catch (err) {
+    alert("Failed to delete product: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Confirm Delete';
+  }
+};
+
+/* ---------- Category Management (Phase 1) ---------- */
+function updateCategoryDropdowns() {
+  const catFilter = $('product-category-filter');
+  const catSelect = $('prod-category');
+
+  // Collect unique category names
+  const defaultCategories = ['Shirts', 'T-Shirts', 'Outerwear', 'Pants', 'Caps & Headwear', 'Bags & Packs', 'Accessories'];
+  const allNames = Array.from(new Set([
+    ...currentCategories.map(c => c.name),
+    ...currentProducts.map(p => p.category),
+    ...defaultCategories
+  ])).filter(Boolean).sort();
+
+  if (catFilter) {
+    const curVal = catFilter.value;
+    catFilter.innerHTML = '<option value="all">All Categories</option>' +
+      allNames.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if (allNames.includes(curVal)) catFilter.value = curVal;
+  }
+
+  if (catSelect) {
+    const curVal = catSelect.value;
+    catSelect.innerHTML = allNames.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if (curVal && allNames.includes(curVal)) catSelect.value = curVal;
+  }
+}
+
+async function loadCategories() {
+  const tbody = $('categories-tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">Loading categories...</td></tr>';
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('categories')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    if (error) {
+      console.warn("Could not load from 'categories' table, deriving from catalog:", error.message);
+      // Fallback: derive categories from current products or defaults so UI stays functional
+      const defaultCategories = [
+        { id: 'cat-shirts', name: 'Shirts', slug: 'shirts', description: 'Tailored and casual shirts in breathable linen and cotton blends', is_active: true, display_order: 1 },
+        { id: 'cat-tshirts', name: 'T-Shirts', slug: 't-shirts', description: 'Essential tees crafted with heavyweight cotton', is_active: true, display_order: 2 },
+        { id: 'cat-outerwear', name: 'Outerwear', slug: 'outerwear', description: 'Utility jackets, blazers, and overshirts', is_active: true, display_order: 3 },
+        { id: 'cat-pants', name: 'Pants', slug: 'pants', description: 'Relaxed trousers, chinos, and tailored bottoms', is_active: true, display_order: 4 },
+        { id: 'cat-caps', name: 'Caps & Headwear', slug: 'caps-headwear', description: 'Embroidered caps and seasonal headwear', is_active: true, display_order: 5 },
+        { id: 'cat-bags', name: 'Bags & Packs', slug: 'bags-packs', description: 'Leather travel bags, duffles, and carryalls', is_active: true, display_order: 6 },
+        { id: 'cat-acc', name: 'Accessories', slug: 'accessories', description: 'Leather belts, wallets, and lifestyle gear', is_active: true, display_order: 7 }
+      ];
+      currentCategories = defaultCategories;
+    } else {
+      currentCategories = (data || []).map(c => ({
+        id: c.id,
+        name: c.name || c.category_name || 'Category',
+        slug: c.slug || (c.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: c.description || c.desc || '',
+        isActive: c.is_active !== undefined ? (c.is_active === true || c.is_active === 1 || c.is_active === 'true') : (c.status !== 'inactive'),
+        displayOrder: c.display_order || 0,
+        raw: c
+      }));
+    }
+
+    updateCategoryDropdowns();
+    renderCategoriesTable();
+  } catch (err) {
+    console.error("Categories load error:", err);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:30px;">Error loading categories: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function onCategoryFilterChange() {
+  const searchInput = $('category-search-input');
+  const statusFilter = $('category-status-filter');
+  categorySearchQuery = (searchInput ? searchInput.value : '').trim().toLowerCase();
+  categoryStatusFilter = statusFilter ? statusFilter.value : 'all';
+  renderCategoriesTable();
+}
+
+function renderCategoriesTable() {
+  const tbody = $('categories-tbody');
+  const countBadge = $('categories-count-badge');
+  if (!tbody) return;
+
+  if (currentCategories.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px;">No categories found. Click "+ Add New Category" to create one.</td></tr>';
+    if (countBadge) countBadge.textContent = '0 categories';
+    return;
+  }
+
+  // Filter categories
+  const filtered = currentCategories.filter(c => {
+    if (categorySearchQuery) {
+      const q = categorySearchQuery;
+      const matchName = (c.name || '').toLowerCase().includes(q);
+      const matchSlug = (c.slug || '').toLowerCase().includes(q);
+      const matchDesc = (c.description || '').toLowerCase().includes(q);
+      if (!matchName && !matchSlug && !matchDesc) return false;
+    }
+
+    if (categoryStatusFilter === 'active' && !c.isActive) return false;
+    if (categoryStatusFilter === 'inactive' && c.isActive) return false;
+
+    return true;
+  });
+
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} of ${currentCategories.length} categories`;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px;">No categories matching your filter.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => {
+    const assignedProducts = currentProducts.filter(p => (p.category || '').trim().toLowerCase() === (c.name || '').trim().toLowerCase());
+    const assignedCount = assignedProducts.length;
+
+    const assignedBadge = assignedCount > 0
+      ? `<span class="badge-tag badge-stock">${assignedCount} product${assignedCount > 1 ? 's' : ''}</span>`
+      : `<span class="badge-tag badge-inactive">0 products</span>`;
+
+    const statusBadge = c.isActive
+      ? `<span class="badge-tag badge-active">Active</span>`
+      : `<span class="badge-tag badge-inactive">Inactive</span>`;
+
+    const toggleLabel = c.isActive ? 'Disable' : 'Enable';
+    const toggleClass = c.isActive ? 'btn-secondary' : 'btn-primary';
+
+    return `
+      <tr>
+        <td>
+          <strong style="color:var(--ink);">${escapeHtml(c.name)}</strong>
+        </td>
+        <td>
+          <code style="font-size:11px;color:var(--accent);background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;">${escapeHtml(c.slug)}</code>
+        </td>
+        <td style="color:var(--muted);font-size:12px;max-width:240px;">
+          ${escapeHtml(c.description || '—')}
+        </td>
+        <td>${assignedBadge}</td>
+        <td>${statusBadge}</td>
+        <td style="text-align:right;">
+          <div style="display:inline-flex;gap:6px;align-items:center;">
+            <button class="btn-secondary" style="padding:5px 8px;font-size:11px;" onclick="openEditCategory('${escapeHtml(c.id || c.name)}')">Edit</button>
+            <button class="${toggleClass}" style="padding:5px 8px;font-size:11px;" onclick="toggleCategoryStatus('${escapeHtml(c.id || c.name)}')">${toggleLabel}</button>
+            <button class="btn-danger" style="padding:5px 8px;font-size:11px;" onclick="openDeleteCategory('${escapeHtml(c.id || c.name)}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Inline Toggle Category Active / Inactive Status
+async function toggleCategoryStatus(idOrName) {
+  const cat = currentCategories.find(c => String(c.id) === String(idOrName) || c.name === idOrName);
+  if (!cat) return;
+
+  const newStatus = !cat.isActive;
+  try {
+    if (cat.id && !String(cat.id).startsWith('cat-')) {
+      const { error } = await supabaseClient
+        .from('categories')
+        .update({ is_active: newStatus })
+        .eq('id', cat.id);
+      if (error) throw error;
+    }
+
+    cat.isActive = newStatus;
+    showToast(`Category "${cat.name}" ${newStatus ? 'enabled' : 'disabled'}`);
+    renderCategoriesTable();
+  } catch (err) {
+    console.error("Toggle category status error:", err);
+    alert("Could not update category status: " + err.message);
+  }
+}
+
+/* ---------- Category Add / Edit Modal ---------- */
+const btnOpenAddCat = $('btn-open-add-category');
+if (btnOpenAddCat) btnOpenAddCat.onclick = () => openAddCategory();
+
+const btnCancelCat = $('btn-cancel-category');
+if (btnCancelCat) btnCancelCat.onclick = () => $('category-modal').hidden = true;
+
+// Auto slug generation on name input
+const catNameInput = $('cat-name');
+if (catNameInput) {
+  catNameInput.addEventListener('input', (e) => {
+    const slugInput = $('cat-slug');
+    const catId = $('cat-id').value;
+    if (!catId && slugInput) {
+      slugInput.value = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+  });
+}
+
+function openAddCategory() {
+  $('modal-category-title').textContent = 'Add New Category';
+  $('cat-id').value = '';
+  $('cat-name').value = '';
+  $('cat-slug').value = '';
+  $('cat-status').value = 'active';
+  $('cat-desc').value = '';
+  $('category-modal').hidden = false;
+}
+
+function openEditCategory(idOrName) {
+  const cat = currentCategories.find(c => String(c.id) === String(idOrName) || c.name === idOrName);
+  if (!cat) return;
+
+  $('modal-category-title').textContent = 'Edit Category — ' + cat.name;
+  $('cat-id').value = cat.id || '';
+  $('cat-name').value = cat.name;
+  $('cat-slug').value = cat.slug || '';
+  $('cat-status').value = cat.isActive ? 'active' : 'inactive';
+  $('cat-desc').value = cat.description || '';
+  $('category-modal').hidden = false;
+}
+
+// Save Category to Supabase
+const catForm = $('category-form');
+if (catForm) {
+  catForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const saveBtn = $('btn-save-category');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving to Supabase...';
+
+    try {
+      const catId = $('cat-id').value;
+      const name = $('cat-name').value.trim();
+      let slug = $('cat-slug').value.trim();
+      const status = $('cat-status').value;
+      const isActive = status === 'active';
+      const description = $('cat-desc').value.trim();
+
+      if (!name) {
+        alert("Category name is required.");
+        return;
+      }
+
+      if (!slug) {
+        slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      }
+
+      const payload = {
+        name,
+        slug,
+        description,
+        is_active: isActive
+      };
+
+      if (catId && !catId.startsWith('cat-')) {
+        // Update existing category
+        const { error } = await supabaseClient
+          .from('categories')
+          .update(payload)
+          .eq('id', catId);
+        if (error) throw error;
+        showToast("Category updated successfully!");
+      } else {
+        // Insert new category
+        const { error } = await supabaseClient
+          .from('categories')
+          .insert([payload]);
+        if (error) {
+          // If table doesn't exist yet, warn gracefully
+          if (error.message.includes('relation "public.categories" does not exist')) {
+            alert("The 'categories' table has not been created yet in Supabase. Please run the provided supabase_categories_setup.sql script in your Supabase SQL Editor.");
+            return;
+          }
+          throw error;
+        }
+        showToast("Category created successfully!");
+      }
+
+      $('category-modal').hidden = true;
+      await loadCategories();
+    } catch (err) {
+      console.error("Save category error:", err);
+      alert("Error saving category: " + err.message);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Category';
+    }
+  };
+}
+
+/* ---------- Safe Category Deletion ---------- */
+function openDeleteCategory(idOrName) {
+  const cat = currentCategories.find(c => String(c.id) === String(idOrName) || c.name === idOrName);
+  if (!cat) return;
+
+  deleteCategoryTarget = cat;
+  $('cat-delete-name').textContent = cat.name;
+
+  // SAFE DELETION CHECK: Inspect products assigned to this category
+  const assigned = currentProducts.filter(p => (p.category || '').trim().toLowerCase() === (cat.name || '').trim().toLowerCase());
+  const warnDiv = $('cat-delete-warning');
+  const confirmBtn = $('btn-confirm-delete-cat');
+
+  if (assigned.length > 0) {
+    // UNSAFE TO DELETE: Category has active products
+    warnDiv.innerHTML = `
+      <div style="background:rgba(239,68,68,0.12);border:1px solid var(--danger);border-radius:6px;padding:12px;margin-bottom:16px;text-align:left;">
+        <strong style="color:var(--danger);display:block;font-size:12px;margin-bottom:4px;">⚠️ Cannot Safe-Delete Category</strong>
+        <p style="font-size:12px;color:var(--text);margin:0;line-height:1.4;">
+          There are <strong>${assigned.length} product(s)</strong> currently assigned to "<strong>${escapeHtml(cat.name)}</strong>" (including: ${assigned.slice(0, 3).map(p => escapeHtml(p.name)).join(', ')}${assigned.length > 3 ? '...' : ''}).
+        </p>
+        <p style="font-size:11px;color:var(--muted);margin:6px 0 0;">
+          To preserve catalog integrity, delete or reassign these products first before deleting this category.
+        </p>
+      </div>
+    `;
+    confirmBtn.disabled = true;
+    confirmBtn.style.opacity = '0.4';
+    confirmBtn.style.cursor = 'not-allowed';
+    confirmBtn.title = 'Cannot delete category while products are assigned to it';
+  } else {
+    // SAFE TO DELETE: Zero products assigned
+    warnDiv.innerHTML = `
+      <div style="background:rgba(16,185,129,0.12);border:1px solid var(--success);border-radius:6px;padding:12px;margin-bottom:16px;text-align:left;">
+        <strong style="color:var(--success);display:block;font-size:12px;margin-bottom:4px;">✓ Safe to Delete</strong>
+        <p style="font-size:12px;color:var(--text);margin:0;line-height:1.4;">
+          No products are currently assigned to "<strong>${escapeHtml(cat.name)}</strong>". Are you sure you want to permanently delete this category?
+        </p>
+      </div>
+    `;
+    confirmBtn.disabled = false;
+    confirmBtn.style.opacity = '1';
+    confirmBtn.style.cursor = 'pointer';
+    confirmBtn.title = 'Confirm deletion';
+  }
+
+  $('category-delete-modal').hidden = false;
+}
+
+const btnCancelDeleteCat = $('btn-cancel-delete-cat');
+if (btnCancelDeleteCat) {
+  btnCancelDeleteCat.onclick = () => {
+    deleteCategoryTarget = null;
+    $('category-delete-modal').hidden = true;
+  };
+}
+
+const btnConfirmDeleteCat = $('btn-confirm-delete-cat');
+if (btnConfirmDeleteCat) {
+  btnConfirmDeleteCat.onclick = async () => {
+    if (!deleteCategoryTarget) return;
+
+    // Safety guard
+    const assigned = currentProducts.filter(p => (p.category || '').trim().toLowerCase() === (deleteCategoryTarget.name || '').trim().toLowerCase());
+    if (assigned.length > 0) {
+      alert(`Cannot delete category "${deleteCategoryTarget.name}" because it still has ${assigned.length} assigned product(s).`);
+      return;
+    }
+
+    const btn = $('btn-confirm-delete-cat');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+      if (deleteCategoryTarget.id && !String(deleteCategoryTarget.id).startsWith('cat-')) {
+        const { error } = await supabaseClient
+          .from('categories')
+          .delete()
+          .eq('id', deleteCategoryTarget.id);
+        if (error) throw error;
+      } else {
+        // Also try deleting by name
+        await supabaseClient.from('categories').delete().eq('name', deleteCategoryTarget.name);
+      }
+
+      showToast(`Category "${deleteCategoryTarget.name}" deleted successfully`);
+      $('category-delete-modal').hidden = true;
+      deleteCategoryTarget = null;
+      await loadCategories();
+    } catch (err) {
+      console.error("Delete category error:", err);
+      alert("Failed to delete category: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Confirm Delete';
+    }
+  };
+}
+
+/* ---------- Orders Management (Req 1, 2, 3, 4, 9, 10) ---------- */
+$('btn-refresh-orders').onclick = () => loadOrders();
+
+function onOrderFilterChange() {
+  const searchInput = $('order-search-input');
+  const statusSelect = $('order-status-filter');
+  orderSearchQuery = (searchInput ? searchInput.value : '').trim().toLowerCase();
+  orderStatusFilter = statusSelect ? statusSelect.value : 'all';
+  updateFilterButtons();
+  renderOrdersTable();
+}
+
+function setOrderStatusFilter(val) {
+  orderStatusFilter = val;
+  const statusSelect = $('order-status-filter');
+  if (statusSelect) statusSelect.value = val;
+  updateFilterButtons();
+  renderOrdersTable();
+}
+
+function updateFilterButtons() {
+  const btnAll = $('filter-btn-all');
+  const btnCancels = $('filter-btn-cancellations');
+  if (btnAll) btnAll.style.background = (orderStatusFilter === 'all') ? 'rgba(255,255,255,0.1)' : '';
+  if (btnCancels) btnCancels.style.background = (orderStatusFilter === 'cancellation_requested') ? 'rgba(245,158,11,0.2)' : '';
+}
+
+async function loadOrders() {
+  const tbody = $('orders-tbody');
+  const overviewTbody = $('overview-orders-tbody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">Loading customer orders...</td></tr>';
+
+  try {
+    const { data: sampleOrder } = await supabaseClient.from('orders').select('*').limit(1);
+    const cols = (sampleOrder && sampleOrder.length > 0) ? Object.keys(sampleOrder[0]) : [];
+
+    let query = supabaseClient.from('orders').select('*');
+    if (cols.includes('created_at')) query = query.order('created_at', { ascending: false });
+    else if (cols.includes('id')) query = query.order('id', { ascending: false });
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    currentOrders = (data || []).map(o => ({
+      id: o.id || o.order_id,
+      orderRef: o.order_number || o.order_ref || `ORD-${String(o.id).padStart(5, '0')}`,
+      customer: o.customer_name || o.email || o.customer_email || (o.user_id ? `User #${o.user_id}` : 'Guest Customer'),
+      email: o.email || o.customer_email || '',
+      phone: o.customer_phone || o.phone || '',
+      total: parseFloat(o.total_amount || o.total || o.amount || 0),
+      status: (o.status || o.order_status || 'pending').toLowerCase(),
+      items: o.items || o.order_items || 'MEN\'S PLANET Apparel',
+      cancellationRequested: !!o.cancellation_requested,
+      cancellationReason: o.cancellation_reason || '',
+      cancellationRequestedAt: o.cancellation_requested_at || null,
+      adminNotes: o.admin_notes || '',
+      createdAt: o.created_at ? new Date(o.created_at).toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Recent',
+      raw: o
+    }));
+
+    // Update filter counts
+    if ($('filter-count-all')) $('filter-count-all').textContent = currentOrders.length;
+    const cancelCount = currentOrders.filter(o => o.cancellationRequested).length;
+    if ($('filter-count-cancels')) $('filter-count-cancels').textContent = cancelCount;
+
+    renderOrdersTable();
+    updateOverviewStats();
+  } catch (err) {
+    console.error("Orders load error:", err);
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">No orders found or error loading orders: ${err.message}</td></tr>`;
+    overviewTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">No recent customer orders found.</td></tr>`;
+  }
+}
+
+function renderOrdersTable() {
+  const tbody = $('orders-tbody');
+  const overviewTbody = $('overview-orders-tbody');
+
+  if (currentOrders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px;">No orders recorded in the system yet.</td></tr>';
+    overviewTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">No recent customer orders.</td></tr>';
+    return;
+  }
+
+  // Filter orders based on search query and status filter (Req 9, 10)
+  const filteredOrders = currentOrders.filter(o => {
+    // Status filter
+    if (orderStatusFilter === 'cancellation_requested') {
+      if (!o.cancellationRequested) return false;
+    } else if (orderStatusFilter !== 'all') {
+      if (o.status !== orderStatusFilter.toLowerCase()) return false;
+    }
+
+    // Search query
+    if (orderSearchQuery) {
+      const q = orderSearchQuery;
+      const refMatch = (o.orderRef || '').toLowerCase().includes(q);
+      const custMatch = (o.customer || '').toLowerCase().includes(q);
+      const emailMatch = (o.email || '').toLowerCase().includes(q);
+      const phoneMatch = (o.phone || '').toLowerCase().includes(q);
+      const addrMatch = ((o.raw.shipping_address || o.raw.address || '')).toLowerCase().includes(q);
+      if (!refMatch && !custMatch && !emailMatch && !phoneMatch && !addrMatch) return false;
+    }
+    return true;
+  });
+
+  if (filteredOrders.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px;">No orders matching current filter criteria.</td></tr>`;
+  } else {
+    // Render Filtered Full Orders Tab
+    tbody.innerHTML = filteredOrders.map(o => {
+      let itemsText = '';
+      if (Array.isArray(o.items)) {
+        itemsText = o.items.map(it => `${it.name || 'Item'} (${it.size || 'M'}) × ${it.quantity || 1}`).join('<br>');
+      } else if (typeof o.items === 'object' && o.items !== null) {
+        itemsText = JSON.stringify(o.items);
+      } else {
+        itemsText = o.items || 'Apparel';
+      }
+
+      const phone = o.phone;
+      const address = o.raw.shipping_address || o.raw.address || '';
+
+      // Payment details
+      const payStatus = (o.raw.payment_status || 'pending').toLowerCase();
+      const payMethod = (o.raw.payment_method || 'cod').toLowerCase();
+      const payId = o.raw.cashfree_payment_id || o.raw.razorpay_payment_id || '';
+
+      let payBadge = '';
+      if (['paid', 'completed'].includes(payStatus)) {
+        const methodLabel = (payMethod === 'cashfree') ? 'Cashfree' : (payMethod === 'razorpay') ? 'Online' : payMethod;
+        payBadge = `<span class="badge-tag badge-active" style="font-size:10px;text-transform:uppercase;">Paid • ${methodLabel}</span>`;
+      } else if (payStatus === 'failed') {
+        payBadge = `<span class="badge-tag badge-out" style="font-size:10px;text-transform:uppercase;">Payment Failed</span>`;
+      } else {
+        const statusLabel = payStatus === 'unpaid' ? 'UNPAID' : 'PENDING';
+        payBadge = `<span class="badge-tag badge-low" style="font-size:10px;text-transform:uppercase;">${statusLabel} • ${payMethod.toUpperCase()}</span>`;
+      }
+
+      // Cancellation request tag (Req 9)
+      const cancelBadge = o.cancellationRequested
+        ? `<div style="margin-top:4px;"><span class="badge-tag badge-low" style="background:rgba(245,158,11,0.18);color:#f59e0b;font-size:9.5px;border:1px solid #f59e0b;">⚠️ Cancellation Req</span></div>`
+        : '';
+
+      const rowBorderHighlight = o.cancellationRequested ? 'border-left: 3px solid #f59e0b;' : '';
+
+      return `
+        <tr style="${rowBorderHighlight}">
+          <td>
+            <strong>${o.orderRef}</strong>
+            ${cancelBadge}
+          </td>
+          <td>
+            <div style="font-weight:700;">${o.customer}</div>
+            ${o.email ? `<span style="font-size:11px;color:var(--muted);">${o.email}</span><br>` : ''}
+            ${phone ? `<span style="font-size:11px;color:var(--ink);">${phone}</span><br>` : ''}
+            ${address ? `<span style="font-size:10px;opacity:0.75;display:block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${address}</span>` : ''}
+          </td>
+          <td style="max-width:220px;font-size:12px;color:var(--muted);line-height:1.4;">
+            ${itemsText}
+          </td>
+          <td>
+            <strong style="color:var(--ink);font-size:13.5px;">₹${o.total.toFixed(2)}</strong>
+            <div style="margin-top:4px;">${payBadge}</div>
+            ${payId ? `<div style="font-size:9.5px;color:var(--muted);margin-top:3px;font-family:monospace;word-break:break-all;">Pay ID: ${payId}</div>` : ''}
+          </td>
+          <td>
+            <select class="status-select" onchange="updateOrderStatus('${o.id}', this.value)">
+              <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+              <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+              <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
+              <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+              <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+              <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
+          </td>
+          <td style="font-size:11px;color:var(--muted);">${o.createdAt}</td>
+          <td>
+            <button class="btn-secondary" onclick="viewOrderDetail('${o.id}')" style="padding:5px 10px;font-size:11px;font-weight:700;white-space:nowrap;">View Details</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Render Overview Top 5
+  overviewTbody.innerHTML = currentOrders.slice(0, 5).map(o => {
+    let itemsText = '';
+    if (Array.isArray(o.items)) {
+      itemsText = o.items.map(it => `${it.name || 'Item'} (${it.size || 'M'}) × ${it.quantity || 1}`).join(', ');
+    } else if (typeof o.items === 'object') {
+      itemsText = JSON.stringify(o.items);
+    } else {
+      itemsText = o.items || 'Apparel';
+    }
+
+    const payStatus = (o.raw.payment_status || 'unpaid').toLowerCase();
+
+    return `
+      <tr>
+        <td><strong>${o.orderRef}</strong></td>
+        <td>${o.customer}</td>
+        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--muted);">${itemsText}</td>
+        <td><strong style="color:var(--ink);">₹${o.total.toFixed(2)}</strong></td>
+        <td>
+          <span class="badge-tag ${o.status === 'delivered' ? 'badge-active' : (o.status === 'cancelled' ? 'badge-out' : 'badge-low')}">${o.status}</span>
+          <span class="badge-tag ${payStatus === 'paid' ? 'badge-active' : 'badge-low'}" style="margin-left:4px;font-size:9.5px;">${payStatus}</span>
+        </td>
+        <td style="font-size:11px;color:var(--muted);">${o.createdAt}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ---------- Order Detail Modal & Status Updates (Req 3, 4, 9, 12) ---------- */
+function viewOrderDetail(orderId) {
+  const order = currentOrders.find(o => String(o.id) === String(orderId));
+  if (!order) return;
+
+  activeOrderDetailId = order.id;
+
+  $('od-ref').textContent = `Order #${order.orderRef}`;
+  $('od-date').textContent = `Placed on ${order.createdAt}`;
+
+  // Customer Info
+  $('od-customer-name').textContent = order.customer;
+  $('od-customer-email').textContent = order.email || 'No email provided';
+  $('od-customer-phone').textContent = order.phone || 'No phone provided';
+
+  // Shipping Address
+  const raw = order.raw;
+  $('od-shipping-address').textContent = raw.shipping_address || raw.address || 'Address not recorded';
+  const cityState = [raw.city, raw.state, raw.postal_code].filter(Boolean).join(', ');
+  $('od-shipping-city-state').textContent = cityState || '';
+
+  // Payment Badge
+  const payStatus = (raw.payment_status || 'pending').toLowerCase();
+  const payMethod = (raw.payment_method || 'cod').toLowerCase();
+  const payId = raw.cashfree_payment_id || raw.razorpay_payment_id || '';
+  const isPaid = ['paid', 'completed'].includes(payStatus);
+  const statusLabel = isPaid ? 'PAID' : payStatus === 'unpaid' ? 'UNPAID' : 'PENDING';
+  $('od-payment-badge').innerHTML = `<span class="badge-tag ${isPaid ? 'badge-active' : 'badge-low'}" style="font-size:11px;">${statusLabel} • ${payMethod.toUpperCase()}</span>`;
+  $('od-payment-id').textContent = payId ? `Transaction ID: ${payId}` : '';
+
+  // Cancellation Banner (Req 9)
+  const cancelBanner = $('od-cancel-banner');
+  if (order.cancellationRequested) {
+    cancelBanner.style.display = 'block';
+    $('od-cancel-reason').textContent = order.cancellationReason || 'Customer requested order cancellation';
+    $('od-cancel-time').textContent = order.cancellationRequestedAt ? new Date(order.cancellationRequestedAt).toLocaleString() : 'Recent';
+    $('od-btn-approve-cancel').onclick = () => approveCancellation(order.id);
+    $('od-btn-decline-cancel').onclick = () => declineCancellation(order.id);
+  } else {
+    cancelBanner.style.display = 'none';
+  }
+
+  // Items table (Req 3)
+  const itemsTbody = $('od-items-tbody');
+  let itemsList = [];
+  if (Array.isArray(order.items)) {
+    itemsList = order.items;
+  } else if (typeof order.items === 'string') {
+    try { itemsList = JSON.parse(order.items); } catch(e) { itemsList = [{ name: order.items, quantity: 1, unit_price: order.total, line_total: order.total }]; }
+  }
+
+  if (itemsList.length === 0) {
+    itemsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">No detailed item records found.</td></tr>`;
+  } else {
+    itemsTbody.innerHTML = itemsList.map(item => {
+      const unit = parseFloat(item.unit_price || item.price || 0);
+      const qty = parseInt(item.quantity || 1, 10);
+      const subtotal = parseFloat(item.line_total || (unit * qty)).toFixed(2);
+      const imgHtml = item.image ? `<img src="${item.image}" style="width:36px;height:42px;object-fit:cover;border-radius:3px;margin-right:8px;background:var(--surface);" onerror="this.style.display='none'">` : '';
+
+      return `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;">
+              ${imgHtml}
+              <strong>${item.name || 'MEN\'S PLANET Item'}</strong>
+            </div>
+          </td>
+          <td><span class="badge-tag" style="background:rgba(255,255,255,0.08);">${item.size || 'M'}</span></td>
+          <td>₹${unit.toFixed(2)}</td>
+          <td>${qty}</td>
+          <td style="text-align:right;font-weight:700;">₹${subtotal}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  $('od-total-amount').textContent = `₹${order.total.toFixed(2)}`;
+
+  // Controls (Req 4, 12)
+  $('od-status-select').value = order.status;
+  $('od-admin-notes').value = order.adminNotes || '';
+
+  $('order-detail-modal').hidden = false;
+}
+
+function closeOrderDetailModal() {
+  $('order-detail-modal').hidden = true;
+  activeOrderDetailId = null;
+}
+
+async function saveOrderDetailStatus() {
+  if (!activeOrderDetailId) return;
+  const newStatus = $('od-status-select').value;
+  const notes = $('od-admin-notes').value.trim();
+  const saveBtn = $('od-btn-save-status');
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  try {
+    await updateOrderStatus(activeOrderDetailId, newStatus, notes);
+    closeOrderDetailModal();
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Status';
+  }
+}
+
+async function approveCancellation(orderId) {
+  if (!confirm("Are you sure you want to approve this cancellation request?\n\nThe order status will be set to Cancelled and product inventory will be restocked.")) return;
+  await updateOrderStatus(orderId, 'cancelled', 'Cancellation approved by administrator. Items restocked.');
+  closeOrderDetailModal();
+}
+
+async function declineCancellation(orderId) {
+  const reason = prompt("Enter a brief reason for declining the cancellation request:", "Order has already been processed or dispatched.");
+  if (reason === null) return;
+
+  try {
+    const payload = {
+      cancellation_requested: false,
+      admin_notes: `Cancellation request declined: ${reason}`,
+      updated_at: new Date().toISOString()
+    };
+
+    let updErr = null;
+    let attempts = 0;
+    while (attempts < 5) {
+      attempts++;
+      const res = await supabaseClient
+        .from('orders')
+        .update(payload)
+        .eq('id', orderId);
+
+      if (!res.error) {
+        updErr = null;
+        break;
+      }
+      updErr = res.error;
+      if (updErr.message && updErr.message.includes('in the schema cache')) {
+        const colMatch = updErr.message.match(/Could not find the ['"]?([a-zA-Z0-9_]+)['"]? column/i)
+                      || updErr.message.match(/['"]([a-zA-Z0-9_]+)['"] column/i);
+        if (colMatch && colMatch[1]) {
+          delete payload[colMatch[1]];
+          continue;
+        }
+        if (updErr.message.includes('updated_at')) {
+          delete payload.updated_at;
+          continue;
+        }
+        if (updErr.message.includes('admin_notes')) {
+          delete payload.admin_notes;
+          continue;
+        }
+      }
+      break;
+    }
+
+    if (updErr) throw updErr;
+
+    showToast("Cancellation request declined.");
+    await loadOrders();
+    closeOrderDetailModal();
+  } catch (err) {
+    alert("Could not decline cancellation: " + err.message);
+  }
+}
+
+// Update order status in Supabase (Req 4, 12)
+async function updateOrderStatus(orderId, newStatus, adminNotes = null) {
+  try {
+    let updateSuccess = false;
+
+    // 1. Try secure RPC admin_update_order_status
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabaseClient.rpc('admin_update_order_status', {
+        p_order_id: parseInt(orderId, 10),
+        p_new_status: newStatus,
+        p_admin_notes: adminNotes || null,
+        p_resolve_cancellation: (newStatus === 'cancelled')
+      });
+
+      if (!rpcErr && rpcRes && rpcRes.success) {
+        updateSuccess = true;
+      }
+    } catch (rpcEx) {
+      console.warn("RPC status update failed, attempting direct table update:", rpcEx);
+    }
+
+    // 2. Fallback to direct update if RPC is not yet registered (Schema-adaptive retry)
+    if (!updateSuccess) {
+      const payload = { 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      };
+      if (adminNotes !== null) payload.admin_notes = adminNotes;
+      if (newStatus === 'cancelled') payload.cancellation_requested = false;
+
+      let updErr = null;
+      let attempts = 0;
+      while (attempts < 5) {
+        attempts++;
+        const res = await supabaseClient
+          .from('orders')
+          .update(payload)
+          .eq('id', orderId);
+
+        if (!res.error) {
+          updErr = null;
+          break;
+        }
+        updErr = res.error;
+        if (updErr.message && updErr.message.includes('in the schema cache')) {
+          const colMatch = updErr.message.match(/Could not find the ['"]?([a-zA-Z0-9_]+)['"]? column/i)
+                        || updErr.message.match(/['"]([a-zA-Z0-9_]+)['"] column/i);
+          if (colMatch && colMatch[1]) {
+            delete payload[colMatch[1]];
+            continue;
+          }
+          if (updErr.message.includes('updated_at')) {
+            delete payload.updated_at;
+            continue;
+          }
+          if (updErr.message.includes('admin_notes')) {
+            delete payload.admin_notes;
+            continue;
+          }
+          if (updErr.message.includes('cancellation_requested')) {
+            delete payload.cancellation_requested;
+            continue;
+          }
+        }
+        break;
+      }
+
+      if (updErr) throw updErr;
+    }
+
+    showToast(`Order status updated to "${newStatus.toUpperCase()}"`);
+
+    // update local object
+    const found = currentOrders.find(o => String(o.id) === String(orderId));
+    if (found) {
+      found.status = newStatus;
+      if (adminNotes !== null) found.adminNotes = adminNotes;
+      if (newStatus === 'cancelled') found.cancellationRequested = false;
+    }
+
+    // Refresh count badges and tables
+    const cancelCount = currentOrders.filter(o => o.cancellationRequested).length;
+    if ($('filter-count-cancels')) $('filter-count-cancels').textContent = cancelCount;
+
+    renderOrdersTable();
+    updateOverviewStats();
+  } catch (err) {
+    alert("Could not update order status: " + err.message);
+    loadOrders();
+  }
+}
+
+/* ---------- Dashboard Statistics Calculation (Req 2) ---------- */
+function updateOverviewStats() {
+  const totalProds = currentProducts.length;
+  const activeProds = currentProducts.filter(p => p.isActive).length;
+  const lowStockProds = currentProducts.filter(p => p.stock <= 5).length;
+
+  const totalOrders = currentOrders.length;
+  const pendingOrders = currentOrders.filter(o => o.status === 'pending' || o.status === 'processing' || o.status === 'confirmed').length;
+  const totalRevenue = currentOrders
+    .filter(o => o.status !== 'cancelled')
+    .reduce((sum, o) => sum + o.total, 0);
+
+  $('stat-total-products').textContent = totalProds;
+  $('stat-active-products').textContent = `${activeProds} active in catalog`;
+  $('stat-low-stock').textContent = lowStockProds;
+
+  $('stat-total-orders').textContent = totalOrders;
+  $('stat-pending-orders').textContent = `${pendingOrders} awaiting fulfillment`;
+  $('stat-total-revenue').textContent = `₹${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Start
+checkAuth();
+</script>
+</body>
+</html>

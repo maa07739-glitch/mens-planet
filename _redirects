@@ -1,0 +1,4 @@
+# MEN'S PLANET Netlify Redirects
+/admin       /admin/index.html   200
+/admin/*     /admin/index.html   200
+/shop        /index.html         200
